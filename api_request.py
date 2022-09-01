@@ -1,7 +1,8 @@
 import requests
 import pandas as pd
+import cred 
 
-baseurl = 'https://rickandmortyapi.com/api/'
+baseurl = cred.baseurl
 
 endpoint = 'character'
 
@@ -32,5 +33,7 @@ for x in range(1,get_pages(data)+1):
     mainlist.extend(parse_json(main_request(baseurl, endpoint,x)) )
 
 df = pd.DataFrame(mainlist)
-df.to_csv('charlist', index=False)
+
+if __name__=='__main__':
+    df.to_csv('charlist', index=False)
 

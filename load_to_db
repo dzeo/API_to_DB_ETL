@@ -1,0 +1,73 @@
+import pandas as pd
+import pymysql
+import os
+import  cred as dc
+import api_request
+
+
+
+def read_csv(data_path):
+    return pd.read_csv(data_path) 
+
+def connect_to_db(host_name, dbname, port, username, password):
+    try:
+        conn = pymysql.connect(host=host_name, database=dbname, user=username, password=password, port=port)
+
+    except pymysql.OperationalError as e:
+        raise e
+    else:
+        print('Connected!')
+        return conn
+
+    
+def create_character_table(cursor):
+    query = ("""CREATE TABLE IF NOT EXISTS characters(
+                            id int NOT NULL,
+                            name VARCHAR(255) NOT NULL,
+                            no_of_episode VARCHAR(255) NOT NULL,
+                            PRIMARY KEY (id)
+                            )""")
+    cursor.execute(query)
+    return 
+
+
+
+
+def insert_into_table(cursor,id,name,no_of_episode):
+    query = ("""INSERT INTO characters (id,name,no_of_episode)
+    VALUES(%s,%s,%s);""")
+    row_values = ( id,name,no_of_episode)
+    cursor.execute(query, row_values)
+    return
+
+def append_from_df_to_db(cursor,df):
+    for i, row in df.iterrows():
+        insert_into_table(cursor,int(row['id']),row['name'],int(row['no_ep']))
+    print('Loaded!')
+    return
+
+
+if __name__=='__main__':
+    df = api_request.df  # alternatively read_csv('charlist')
+    print(df)
+
+    #database credentials
+
+
+    conn = None
+
+    #establish a connection to db
+    conn = connect_to_db(dc.host_name, dc.dbname, dc.port, dc.username, dc.password)
+    cursor = conn.cursor()
+
+    # create table
+    create_character_table(cursor)
+    conn.commit()
+
+    # load to database
+    append_from_df_to_db(cursor,df)
+    conn.commit()
+
+
+    cursor.execute("""select * from characters""")
+    print(cursor.fetchall())
